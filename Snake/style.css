@@ -1,0 +1,29 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+html {
+    height: 100%;
+    font-family: Helvetica;
+    color: rgb(255, 255, 255);
+
+
+}
+body {
+    background: -webkit-linear-gradient(top, #1f87ff, #00f7ff);
+    text-align: center;
+}
+.score {
+    font-family: Helvetica;
+    font-size: 2em;
+    position: relative;
+}
+canvas {
+    display: block;
+    position: absolute;
+    margin: auto;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+}
