@@ -1,0 +1,5 @@
+{
+    "delay": 30,
+    "snakeLength": 15,
+    "foodColor": "#ff3636"
+}

@@ -1,17 +1,18 @@
-var
-	canvas = document.getElementById('canvas'),
-	ctx = canvas.getContext('2d'),
-	scoreIs = document.getElementById('score'),
+var canvas = document.getElementById('canvas'), ctx = canvas.getContext('2d'), scoreIs = document.getElementById('score'),
 	direction = '',
 	directionQueue = '',
 	snake = [],
-	snakeLength = 5,
 	cellSize = 20,
 	snakeColor = '#3498db',
-	foodColor = '#ff3636',
 	foodX = [],
 	foodY = [],
 	food = {
+		x: 0,
+		y: 0
+	},
+	foodXB = [],
+	foodYB = [],
+	foodB = {
 		x: 0,
 		y: 0
 	},
@@ -21,6 +22,8 @@ var
 for (i = 0; i <= canvas.width - cellSize; i += cellSize) {
 	foodX.push(i);
 	foodY.push(i);
+	foodXB.push(i);
+	foodYB.push(i);
 }
 // makes canvas interactive upon load
 canvas.setAttribute('tabindex', 1);
@@ -31,20 +34,36 @@ function drawSquare(x, y, color) {
 	ctx.fillStyle = color;
 	ctx.fillRect(x, y, cellSize, cellSize);
 }
+function drawSquareB(x, y, color) {
+	ctx.fillStyle = color;
+	ctx.fillRect(x, y, cellSize, cellSize);
+}
 // giving the food object its coordinates
 function createFood() {
 	food.x = foodX[Math.floor(Math.random() * foodX.length)]; // random x position from array
 	food.y = foodY[Math.floor(Math.random() * foodY.length)]; // random y position from array
-	// looping through the snake and checking if there is a collision
 	for (i = 0; i < snake.length; i++) {
 		if (checkCollision(food.x, food.y, snake[i].x, snake[i].y)) {
 			createFood();
 		}
 	}
 }
+// For bombe food 
+function createFoodB() {
+	foodB.x = foodXB[Math.floor(Math.random() * foodXB.length)]; // random x position from array
+	foodB.y = foodYB[Math.floor(Math.random() * foodYB.length)]; // random y position from array
+	for (i = 0; i < snake.length; i++) {
+		if (checkCollision(foodB.x, foodB.y, snake[i].x, snake[i].y)) {
+			createFoodB();
+		}
+	}
+}
 // drawing food on the canvas
 function drawFood() {
 	drawSquare(food.x, food.y, foodColor);
+}
+function drawFoodB() {
+	drawSquareB(foodB.x, foodB.y, bombeColor);
 }
 // setting the colors for the canvas. color1 - the background, color2 - the line color
 function setBackground(color1, color2) {
@@ -121,19 +140,25 @@ function checkCollision(x1, y1, x2, y2) {
 	}
 }
 // main game loop
-function game(level) {
+function game() {
 
 	var head = snake[0];
 	// checking for wall collisions
 	if (head.x < 0 || head.x > canvas.width - cellSize || head.y < 0 || head.y > canvas.height - cellSize) {
 		if (confirm("Voulez vous rejouer ? ")) {
-			setBackground();
+			direction = 'right';
+			directionQueue = 'right';
+			ctx.beginPath();
 			createSnake();
-			drawSnake();
 			createFood();
 			drawFood();
-			directionQueue = 'right';
 			score = 0;
+
+			if (bombeColor != null) {
+				createFoodB();
+				drawFoodB();
+			}
+
 		} else {
 			location.reload();
 		}
@@ -141,13 +166,23 @@ function game(level) {
 	// checking for colisions with snake's body
 	for (i = 1; i < snake.length; i++) {
 		if (head.x == snake[i].x && head.y == snake[i].y) {
-			setBackground();
-			createSnake();
-			drawSnake();
-			createFood();
-			drawFood();
-			directionQueue = 'right';
-			score = 0;
+			if (confirm("Voulez vous rejouer ? ")) {
+				direction = 'right';
+				directionQueue = 'right';
+				ctx.beginPath();
+				createSnake();
+				createFood();
+				drawFood();
+				score = 0;
+
+				if (bombeColor != null) {
+					createFoodB();
+					drawFoodB();
+				}
+
+			} else {
+				location.reload();
+			}
 		}
 	}
 	// checking for collision with food
@@ -156,6 +191,26 @@ function game(level) {
 		createFood();
 		drawFood();
 		score += 10;
+	}
+	// checking for collision with food
+	if (checkCollision(head.x, head.y, foodB.x, foodB.y)) {
+		if (confirm("Voulez vous rejouer ? ")) {
+			direction = 'right';
+			directionQueue = 'right';
+			ctx.beginPath();
+			createSnake();
+			createFood();
+			drawFood();
+			score = 0;
+
+			if (bombeColor != null) {
+				createFoodB();
+				drawFoodB();
+			}
+
+		} else {
+			location.reload();
+		}
 	}
 
 	window.onkeydown = function (evt) {
@@ -168,40 +223,31 @@ function game(level) {
 	scoreIs.innerHTML = score;
 	drawSnake();
 	drawFood();
+	if (bombeColor != null) {
+		drawFoodB();
+	}
 	moveSnake();
 }
 
-function newGame(level, fps) {
+function newGame() {
+	direction = 'right';
+	directionQueue = 'right';
+	ctx.beginPath();
+	createSnake();
+	createFood();
+	drawFood();
 
-	if (level == "base") {
-		fps = 70;
-		direction = 'right'; // initial direction
-		directionQueue = 'right';
-		ctx.beginPath();
-		createSnake();
-		createFood();
-
-		if (typeof loop != 'undefined') {
-			clearInterval(loop);
-		}
-		else {
-			loop = setInterval(game, fps);
-		}
-	} else {
-		direction = 'right'; // initial direction
-		directionQueue = 'right';
-		ctx.beginPath();
-		createSnake();
-		createFood();
-
-		if (typeof loop != 'undefined') {
-			clearInterval(loop);
-		}
-		else {
-			loop = setInterval(game, fps);
-		}
+	if (bombeColor != null) {
+		createFoodB();
+		drawFoodB();
 	}
+	if (typeof loop != 'undefined') {
 
+		clearInterval(loop);
+	}
+	else {
+		loop = setInterval(game, fps);
+	}
 }
 
 window.onload = () => {
@@ -209,10 +255,12 @@ window.onload = () => {
 	const btn = document.getElementById("start");
 	const btn1 = document.getElementById("btn1");
 	const btn2 = document.getElementById("btn2");
+	const btn3 = document.getElementById("btn3");
 
-	btn.addEventListener('click', () => newGame("base"));
-	btn1.addEventListener('click', () => openPage("level1"));
-	btn2.addEventListener('click', () => openPage("level2"));
+	btn.addEventListener('click', () => openPage("basic"));
+	btn1.addEventListener('click', () => openPage("levelUn"));
+	btn2.addEventListener('click', () => openPage("levelDeux"));
+	btn3.addEventListener('click', () => openPage("levelTrois"));
 
 };
 
@@ -220,17 +268,22 @@ window.onload = () => {
 function openPage(level) {
 
 	var requete = new XMLHttpRequest();
-	requete.open("GET", "script/level1.json");
+	requete.open("GET", "json/" + level + ".json");
 
 	requete.onload = function () {
 
 		var json = JSON.parse(requete.responseText);
 		fps = json.delay;
-		newGame(level, fps);
-		alert(fps);
+		snakeLength = json.snakeLength;
+		foodColor = json.foodColor;
+
+		if (level == "levelDeux") {
+			bombeColor = json.bombeColor;
+		} else {
+			bombeColor = null;
+		}
+		newGame();
 
 	};
-
 	requete.send();
-
 }
